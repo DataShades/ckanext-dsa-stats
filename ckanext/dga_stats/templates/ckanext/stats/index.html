@@ -370,22 +370,22 @@
     <h2 class="module-heading"><i class="icon-bar-chart icon-medium"></i> {{ _('Statistics Menu') }}</h2>
     <nav data-module="stats-nav">
       <ul class="unstyled nav nav-simple">
-          <li class="nav-item"><a href="#stats-recent-created-datasets" data-toggle="tab">{{ _('Recently Created Datasets') }}</a></li>
-          <li class="nav-item"><a href="#stats-recent-updated-datasets" data-toggle="tab">{{ _('Recently Updated Datasets') }}</a></li>
+          <li class="nav-item"><a href="#stats-recent-created-datasets" data-bs-toggle="tab">{{ _('Recently Created Datasets') }}</a></li>
+          <li class="nav-item"><a href="#stats-recent-updated-datasets" data-bs-toggle="tab">{{ _('Recently Updated Datasets') }}</a></li>
 {% if h.check_access('sysadmin') %}
-        <li class="nav-item"><a href="#stats-user-access-list" data-toggle="tab">{{ _('User Access List') }}</a></li>
-          <li class="nav-item"><a href="#stats-users-by-organisation" data-toggle="tab">{{ _('Users By Organisation') }}</a></li>
+        <li class="nav-item"><a href="#stats-user-access-list" data-bs-toggle="tab">{{ _('User Access List') }}</a></li>
+          <li class="nav-item"><a href="#stats-users-by-organisation" data-bs-toggle="tab">{{ _('Users By Organisation') }}</a></li>
 {% endif %}
-        <li class="nav-item"><a href="#stats-total-datasets" data-toggle="tab">{{ _('Total Number of Datasets') }}</a></li>
-        <li class="nav-item"><a href="#stats-dataset-revisions" data-toggle="tab">{{ _('Dataset Revisions per Week') }}</a></li>
-        <li class="nav-item"><a href="#stats-most-edited" data-toggle="tab">{{ _('Most Edited Datasets') }}</a></li>
-        <li class="nav-item"><a href="#stats-by-org" data-toggle="tab">{{ _('Datasets by Organization') }}</a></li>
-        <li class="nav-item"><a href="#stats-res-by-org" data-toggle="tab">{{ _('Resources by Organization') }}</a></li>
-        <li class="nav-item"><a href="#stats-activity-org" data-toggle="tab">{{ _('Most Active Organisations') }}</a></li>
+        <li class="nav-item"><a href="#stats-total-datasets" data-bs-toggle="tab">{{ _('Total Number of Datasets') }}</a></li>
+        <li class="nav-item"><a href="#stats-dataset-revisions" data-bs-toggle="tab">{{ _('Dataset Revisions per Week') }}</a></li>
+        <li class="nav-item"><a href="#stats-most-edited" data-bs-toggle="tab">{{ _('Most Edited Datasets') }}</a></li>
+        <li class="nav-item"><a href="#stats-by-org" data-bs-toggle="tab">{{ _('Datasets by Organization') }}</a></li>
+        <li class="nav-item"><a href="#stats-res-by-org" data-bs-toggle="tab">{{ _('Resources by Organization') }}</a></li>
+        <li class="nav-item"><a href="#stats-activity-org" data-bs-toggle="tab">{{ _('Most Active Organisations') }}</a></li>
         {% if 'ga-report' in g.plugins %}
             <li class="nav-item"><a href="{{ h.url_for_static_or_external('/site-usage') }}">Site Analytics</a></li>
         {% endif %}
-        <li class="nav-item active"><a href="#stats-summary" data-toggle="tab">{{ _('Summary') }}</a></li>
+        <li class="nav-item active"><a href="#stats-summary" data-bs-toggle="tab">{{ _('Summary') }}</a></li>
       </ul>
     </nav>
   </section>
