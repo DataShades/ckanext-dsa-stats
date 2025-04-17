@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-from builtins import str
 import time
 import logging
 
@@ -65,8 +62,7 @@ def index():
         "num_packages_by_week"
     ]:
         extra_vars["packages_by_week"].append(
-            "[new Date(%s), %s]"
-            % (week_date.replace("-", ","), cumulative_num_packages)
+            "[new Date({}), {}]".format(week_date.replace("-", ","), cumulative_num_packages)
         )
         extra_vars["raw_packages_by_week"].append(
             {
@@ -81,7 +77,7 @@ def index():
         "package_revisions_by_week"
     ]:
         extra_vars["all_package_revisions"].append(
-            "[new Date(%s), %s]" % (week_date.replace("-", ","), num_revisions)
+            "[new Date({}), {}]".format(week_date.replace("-", ","), num_revisions)
         )
         extra_vars["raw_all_package_revisions"].append(
             {
@@ -96,7 +92,7 @@ def index():
         "new_packages_by_week"
     ]:
         extra_vars["new_datasets"].append(
-            "[new Date(%s), %s]" % (week_date.replace("-", ","), num_packages)
+            "[new Date({}), {}]".format(week_date.replace("-", ","), num_packages)
         )
         extra_vars["raw_new_datasets"].append(
             {

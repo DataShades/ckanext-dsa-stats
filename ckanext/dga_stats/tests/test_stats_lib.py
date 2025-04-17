@@ -11,7 +11,7 @@ from ckanext.dga_stats.tests import StatsFixture
 class TestStatsPlugin(StatsFixture):
     @classmethod
     def setup_class(cls):
-        super(TestStatsPlugin, cls).setup_class()
+        super().setup_class()
 
         CreateTestData.create_arbitrary(
             [
@@ -40,26 +40,26 @@ class TestStatsPlugin(StatsFixture):
         rev = model.repo.new_revision()
         rev.author = "bob"
         rev.timestamp = datetime.datetime(2011, 1, 12)
-        model.Package.by_name(u"test2").delete()
+        model.Package.by_name("test2").delete()
         model.repo.commit_and_remove()
 
         # week 3
         rev = model.repo.new_revision()
         rev.author = "sandra"
         rev.timestamp = datetime.datetime(2011, 1, 19)
-        model.Package.by_name(u"test3").title = "Test 3"
+        model.Package.by_name("test3").title = "Test 3"
         model.repo.commit_and_remove()
         rev = model.repo.new_revision()
         rev.author = "sandra"
         rev.timestamp = datetime.datetime(2011, 1, 20)
-        model.Package.by_name(u"test4").title = "Test 4"
+        model.Package.by_name("test4").title = "Test 4"
         model.repo.commit_and_remove()
 
         # week 4
         rev = model.repo.new_revision()
         rev.author = "bob"
         rev.timestamp = datetime.datetime(2011, 1, 26)
-        model.Package.by_name(u"test3").notes = "Test 3 notes"
+        model.Package.by_name("test3").notes = "Test 3 notes"
         model.repo.commit_and_remove()
 
     @classmethod
@@ -114,7 +114,7 @@ class TestStatsPlugin(StatsFixture):
             get_results(0),
             (
                 "2011-01-03",
-                set((u"test1", u"test2", u"test3", u"test4")),
+                set(("test1", "test2", "test3", "test4")),
                 4,
                 4,
             ),
@@ -140,7 +140,7 @@ class TestStatsPlugin(StatsFixture):
                 cumulative,
             )
 
-        assert_equal(get_results(0), ("2011-01-10", [u"test2"], 1, 1))
+        assert_equal(get_results(0), ("2011-01-10", ["test2"], 1, 1))
         assert_equal(get_results(1), ("2011-01-17", [], 0, 1))
         assert_equal(get_results(2), ("2011-01-24", [], 0, 1))
         assert_equal(get_results(3), ("2011-01-31", [], 0, 1))

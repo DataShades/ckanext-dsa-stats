@@ -1,18 +1,13 @@
-# -*- coding: utf-8 -*-
 
-from builtins import str
-from builtins import object
 import datetime
 import re
 
 import ckan.model as model
 import ckan.plugins as p
 from sqlalchemy import Table, select, func
+from ckanext.toolbelt.decorators import Cache
+config = p.toolkit.config
 
-if p.toolkit.check_ckan_version("2.9"):
-    config = p.toolkit.config
-else:
-    from pylons import config
 
 cache_enabled = p.toolkit.asbool(
     config.get("ckanext.stats.cache_enabled", "True")
@@ -20,15 +15,19 @@ cache_enabled = p.toolkit.asbool(
 row_limit = config.get("ckanext.stats.row_limit", 100)
 
 if cache_enabled:
-    from beaker.cache import Cache
-
     cache_default_timeout = p.toolkit.asint(
         config.get("ckanext.stats.cache_default_timeout", "86400")
     )
     cache_fast_timeout = p.toolkit.asint(
         config.get("ckanext.stats.cache_fast_timeout", "600")
     )
-    our_cache = Cache("stats", type="memory")
+    class OurCache:
+
+        def get_value(self, key, createfunc, expiretime=cache_default_timeout):
+            cache = Cache(cache_default_timeout, key)
+            return cache(createfunc)()
+
+    our_cache = OurCache()
 
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -41,7 +40,7 @@ def datetime2date(datetime_):
     return datetime.date(datetime_.year, datetime_.month, datetime_.day)
 
 
-class Stats(object):
+class Stats:
     recent_period = p.toolkit.asint(config.get("dga.recent_time_period", "60"))
     recent_limit = p.toolkit.asint(config.get("dga.recent_page_limit", "50"))
 
@@ -76,7 +75,7 @@ class Stats(object):
             ]
 
         if cache_enabled:
-            key = "top_rated_packages_limit_%s" % str(limit)
+            key = f"top_rated_packages_limit_{str(limit)}"
             res_pkgs = our_cache.get_value(
                 key=key,
                 createfunc=fetch_top_rated_packages,
@@ -111,7 +110,7 @@ class Stats(object):
             ]
 
         if cache_enabled:
-            key = "most_edited_packages_limit_%s" % str(limit)
+            key = f"most_edited_packages_limit_{str(limit)}"
             res_pkgs = our_cache.get_value(
                 key=key,
                 createfunc=fetch_most_edited_packages,
@@ -129,7 +128,7 @@ class Stats(object):
             s = (
                 select([member.c.group_id, func.count(member.c.table_id)])
                 .group_by(member.c.group_id)
-                .where(member.c.group_id != None)
+                .where(member.c.group_id is not None)
                 .where(member.c.table_name == "package")
                 .where(member.c.capacity == "public")
                 .order_by(func.count(member.c.table_id).desc())
@@ -143,7 +142,7 @@ class Stats(object):
             ]
 
         if cache_enabled:
-            key = "largest_groups_limit_%s" % str(limit)
+            key = f"largest_groups_limit_{str(limit)}"
             res_groups = our_cache.get_value(
                 key=key,
                 createfunc=fetch_largest_groups,
@@ -280,7 +279,7 @@ class Stats(object):
                     func.count(model.Package.creator_user_id),
                 )
                 .filter(model.Package.state == "active")
-                .filter(model.Package.private == False)
+                .filter(model.Package.private is False)
                 .group_by(model.Package.creator_user_id)
                 .order_by(func.count(model.Package.creator_user_id).desc())
                 .limit(limit)
@@ -294,7 +293,7 @@ class Stats(object):
             return user_count
 
         if cache_enabled:
-            key = "top_package_owners_limit_%s" % str(limit)
+            key = f"top_package_owners_limit_{str(limit)}"
             res_groups = our_cache.get_value(
                 key=key,
                 createfunc=fetch_top_package_owners,
@@ -424,14 +423,11 @@ class Stats(object):
                 "select timestamp,package.id,user_id,maintainer from package "
                 "inner join (select id, min(revision_timestamp) as timestamp from package_revision group by id) a on a.id=package.id "
                 "full outer join (select object_id,user_id from activity "
-                "where activity_type = 'new package' and timestamp > NOW() - interval '{recent_period} day') act on act.object_id=package.id "
+                f"where activity_type = 'new package' and timestamp > NOW() - interval '{cls.recent_period} day') act on act.object_id=package.id "
                 "FULL OUTER JOIN (select package_id,key from package_extra "
                 "where key = 'harvest_portal') e on e.package_id=package.id "
                 "where key is null and private = 'f' and state='active' "
-                "and timestamp > NOW() - interval '{recent_period} day' order by timestamp desc LIMIT {recent_limit};".format(
-                    recent_period=cls.recent_period,
-                    recent_limit=cls.recent_limit,
-                )
+                f"and timestamp > NOW() - interval '{cls.recent_period} day' order by timestamp desc LIMIT {cls.recent_limit};"
             ).fetchall()
             r = []
             for timestamp, package_id, user_id, maintainer in result:
@@ -458,9 +454,7 @@ class Stats(object):
             return r
 
         if cache_enabled:
-            key = "recent_created_datasets_{0}_{1}".format(
-                cls.recent_period, cls.recent_limit
-            )
+            key = f"recent_created_datasets_{cls.recent_period}_{cls.recent_limit}"
             res = our_cache.get_value(
                 key=key,
                 createfunc=fetch_recent_created_datasets,
@@ -481,12 +475,9 @@ class Stats(object):
                 "FULL OUTER JOIN (select package_id,key from package_extra "
                 "where key = 'harvest_portal') e on e.package_id=package.id "
                 "where key is null and activity_type = 'changed package' "
-                "and timestamp > NOW() - interval '{recent_period} day' and private = 'f' and state='active'"
+                f"and timestamp > NOW() - interval '{cls.recent_period} day' and private = 'f' and state='active'"
                 "GROUP BY package.id,user_id,timestamp::date,activity_type "
-                "order by timestamp::date desc LIMIT {recent_limit};".format(
-                    recent_period=cls.recent_period,
-                    recent_limit=cls.recent_limit,
-                )
+                f"order by timestamp::date desc LIMIT {cls.recent_limit};"
             ).fetchall()
             r = []
             for timestamp, package_id, user_id in result:
@@ -516,9 +507,7 @@ class Stats(object):
             return r
 
         if cache_enabled:
-            key = "recent_updated_datasets_{0}_{1}".format(
-                cls.recent_period, cls.recent_limit
-            )
+            key = f"recent_updated_datasets_{cls.recent_period}_{cls.recent_limit}"
             res = our_cache.get_value(
                 key=key,
                 createfunc=fetch_recent_updated_datasets,
@@ -530,7 +519,7 @@ class Stats(object):
         return res
 
 
-class RevisionStats(object):
+class RevisionStats:
     @classmethod
     def package_addition_rate(cls, weeks_ago=0):
         week_commenced = cls.get_date_weeks_ago(weeks_ago)
@@ -672,7 +661,6 @@ class RevisionStats(object):
             week_ends = first_date
             today = datetime.date.today()
             new_package_week_index = 0
-            deleted_package_week_index = 0
             weekly_numbers = (
                 []
             )  # [(week_commences, num_packages, cumulative_num_pkgs])]
@@ -734,7 +722,6 @@ class RevisionStats(object):
             )
             week_commences = cls.get_date_week_started(first_date)
             week_ends = week_commences + datetime.timedelta(days=7)
-            week_index = 0
             weekly_pkg_ids = []  # [(week_commences, [pkg_id1, pkg_id2, ...])]
             pkg_id_stack = []
             cls._cumulative_num_pkgs = 0
@@ -771,10 +758,7 @@ class RevisionStats(object):
 
         if cache_enabled:
             week_commences = cls.get_date_week_started(datetime.date.today())
-            key = "%s_by_week_%s" % (
-                cls._object_type,
-                week_commences.strftime(DATE_FORMAT),
-            )
+            key = f"{cls._object_type}_by_week_{week_commences.strftime(DATE_FORMAT)}"
             objects_by_week_ = our_cache.get_value(
                 key=key, createfunc=objects_by_week
             )

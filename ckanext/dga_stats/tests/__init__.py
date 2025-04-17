@@ -1,10 +1,9 @@
-from builtins import object
 import paste.fixture
 from pylons import config
 from ckan.config.middleware import make_app
 
 
-class StatsFixture(object):
+class StatsFixture:
     @classmethod
     def setup_class(cls):
         cls._original_config = config.copy()
